@@ -128,20 +128,20 @@ class App {
 	public function getWordCount(): int {
 		static $wordCount;
 
-		if ($wordCount === null) {
-			$wordCount = array_reduce($this->getListOfArticles(), function ($total, $article) {
+		if ( $wordCount === null ) {
+			$wordCount = array_reduce( $this->getListOfArticles(), function ( $total, $article ) {
 				// Construct and resolve the full file path securely
-				$filePath = realpath($this->articlePath . DIRECTORY_SEPARATOR . $article);
+				$filePath = realpath( $this->articlePath . DIRECTORY_SEPARATOR . $article );
 				// Ensure the file is within the allowed directory and has a valid extension
-				if ($filePath !== false && strpos($filePath, realpath($this->articlePath)) === 0 && $this->isValidArticle($article)) {
-					$content = file_get_contents($filePath);
-					if ($content !== false) {
-						$total += str_word_count($content);
+				if ( $filePath !== false && strpos( $filePath, realpath( $this->articlePath ) ) === 0 && $this->isValidArticle( $article ) ) {
+					$content = file_get_contents( $filePath );
+					if ( $content !== false ) {
+						$total += str_word_count( $content );
 					}
 				}
 
 				return $total;
-			}, 0);
+			}, 0 );
 		}
 
 		return $wordCount;
