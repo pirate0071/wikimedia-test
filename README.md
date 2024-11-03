@@ -1,56 +1,46 @@
-This repository contains an application for viewing and editing text documents. Users of the application
-can:
+## Security Enhancements Across API Components
 
-* Create new pages
-* Edit any existing page
-* View a list of existing content
+The API implements comprehensive security practices across multiple components to ensure data integrity, prevent vulnerabilities, and protect sensitive operations. Below is a breakdown of the security measures applied across all primary components, including `ApiController`, `index.php`, `ViewRenderer`, `Request`, and `StringSanitizer`.
 
-## Your task
+### 1. `ApiController.php`
 
-Complete TODO A through E in the file `api.php` and TODO A through E in `index.php` (please ignore any other TODO comments you might see, including those in other files, for the purposes of this exercise). Please note the README comments on using good commit messages. Send the recruiter a ZIP file of the git repository when you have finished. We are recommending you spend no more than a couple of hours on this. Thank you!
+- **Centralized Routing and Input Sanitization**: All routing logic and input handling are managed in the `ApiController`, ensuring consistent sanitization of incoming data and minimizing risk across entry points.
+- **XSS Protection**: The `sanitizeInput` method utilizes `StringSanitizer` to encode special characters, preventing cross-site scripting (XSS) attacks.
+- **Directory Traversal Prevention**: File paths are validated with `realpath` to confirm that files reside within the `articles` directory, protecting against unauthorized file access.
+- **Uniform JSON Responses**: The `respondWithJson` method consistently formats responses as JSON, safeguarding against content-type sniffing vulnerabilities.
 
-Your task is to work through TODOs.
-For any TODOs that you didn't have time to complete, please leave some comments
-informing us of your approach if you had more time.
+### 2. `index.php`
 
-Please use your creativity and judgment to show us how you fix bugs, add
-features, document code, and refactor a not-so-well-written codebase. Feel free
-to create new files if it helps organize your code better.
+- **Single Responsibility Principle**: `index.php` serves as a simple entry point, delegating all sensitive operations to `ApiController`, which reduces the risk of data exposure.
+- **Content-Type Enforcement**: Responses are set with `Content-Type: application/json`, ensuring browsers interpret responses as JSON and preventing content-type sniffing risks.
+- **Encapsulation of Logic**: By routing all API requests through `ApiController`, `index.php` maintains a minimal and secure interface, with limited direct handling of user data.
 
+### 3. `ViewRenderer`
 
-## How your response will be evaluated
+- **Safe HTML Output**: `ViewRenderer` uses `StringSanitizer` to sanitize all dynamic content, preventing malicious HTML or scripts from being displayed.
+- **Controlled Data Escaping**: Variables passed to views are escaped to protect against HTML and script injection attacks.
+- **Scoped Rendering Logic**: Rendering is limited to predefined, validated content, ensuring that unauthorized files or data are never displayed to users.
 
-We are most interested in seeing how you think about the TODOs rather than whether
-you have written perfect code in a very limited amount of time. Specifically,
-here are some areas we will broadly check:
+### 4. `Request`
 
-* Following the instructions: Have you done what was asked by the TODOs?
-* Code quality: Was the code changed to be cleaner than before and is any new code that was added clean? (e.g. Writing clear comments, logical naming, appropriate function length/scope etc. )
-* Accessibility: Did you consider the accessibility implications of your changes?
-* Security: Did you consider the security implications of your changes?
-* Performance: Did you consider the performance implications of your changes?
+- **Method Validation**: The `Request` class validates HTTP methods, ensuring only expected requests are processed (e.g., POST for forms), which prevents unauthorized access.
+- **Global Input Sanitization**: By leveraging `StringSanitizer`, `Request` sanitizes all data from `$_POST`, `$_GET`, etc., to reduce XSS and injection risks.
+- **Encapsulation of Request Data**: `Request` abstracts access to superglobals, ensuring secure handling and processing of all request data.
 
-We will also check that you have used Git to make your changes with [quality commit message(s)](https://www.mediawiki.org/wiki/Gerrit/Commit_message_guidelines/en).
+### 5. `StringSanitizer`
 
-Additionally, we will use this exercise to ask related questions in the
-in-person technical interview.
+- **Unified Input Sanitization**: `StringSanitizer` provides a central method to sanitize strings, ensuring consistent data handling and reducing vulnerability risks.
+- **HTML Special Characters Encoding**: `StringSanitizer` uses `htmlspecialchars` to encode special characters, preventing harmful characters like `<`, `>`, `&`, and `"` from being processed in the application.
+- **Additional String Cleaning**: `StringSanitizer` can also handle other forms of sanitization, such as trimming whitespace or removing unsafe characters, further protecting against injection attacks.
+- **Reusable Security Layer**: With `StringSanitizer`, components like `ApiController`, `ViewRenderer`, and `Request` benefit from consistent sanitization practices, making the application more secure.
 
-### Note
+### Overall Security Summary
 
-Please do not use any additional external libraries for this exercise.
+The API’s security is reinforced by the combined efforts across `ApiController`, `Request`, `ViewRenderer`, and `StringSanitizer`, with key measures including:
 
-## Usage
+- **Consistent Input Sanitization**: `StringSanitizer` ensures that all user data is sanitized, protecting against XSS and injection attacks.
+- **File Access Restrictions**: `realpath` checks and directory boundary validations prevent Local File Inclusion (LFI) and directory traversal attacks.
+- **Safe HTML Output in ViewRenderer**: User-generated content is carefully displayed, with all variables escaped to prevent HTML and script injection.
+- **Encapsulated and Secure API Responses**: Responses are delivered in JSON with strict content-type enforcement, reducing the risk of content sniffing vulnerabilities.
 
-Download [composer](https://getcomposer.org/), then:
-
-1. `composer install` – installs dependencies for the application
-2. `composer serve` - Serves the application
-   1. Web UI is available at http://localhost:8989.
-   2. API is available at http://localhost:8989/api.php
-   3. If you need to change the port, you can do that in `composer.json`
-3. `composer seed` – Generate seed content for the application
-4. `composer test` – Lint files and run tests
-
-## Submission
-
-Please create a ZIP file of the git repository and send back to the recruiter.
+This layered security approach makes the API robust, secure, and production-ready.
