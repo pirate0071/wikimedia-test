@@ -2,7 +2,6 @@
 
 namespace Tests;
 
-use App\App;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 

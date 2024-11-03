@@ -14,7 +14,9 @@
 		"phpunit/phpunit": "^9.5",
 		"joshtronic/php-loremipsum": "^2.1",
 		"ext-json": "*",
-		"guzzlehttp/guzzle": "^7.9"
+		"guzzlehttp/guzzle": "^7.9",
+		"ext-mbstring": "*",
+		"ext-pdo": "*"
 	},
 	"scripts": {
 		"lint": "phpcs",
