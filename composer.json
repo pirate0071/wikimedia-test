@@ -13,7 +13,8 @@
 		"mediawiki/mediawiki-codesniffer": "^36.0",
 		"phpunit/phpunit": "^9.5",
 		"joshtronic/php-loremipsum": "^2.1",
-		"ext-json": "*"
+		"ext-json": "*",
+		"guzzlehttp/guzzle": "^7.9"
 	},
 	"scripts": {
 		"lint": "phpcs",
