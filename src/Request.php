@@ -4,10 +4,22 @@ namespace App;
 
 use App\Utility\StringSanitizer;
 
+/**
+ * The Request class is responsible for handling HTTP requests,
+ * including retrieving and sanitizing input data from both GET and POST requests,
+ * as well as securely handling form submissions.
+ */
 class Request
 {
+	/** @var SessionManager */
 	private SessionManager $sessionManager;
 
+	/**
+	 * Constructor method to initialize the class with an optional SessionManager instance.
+	 *
+	 * @param SessionManager|null $sessionManager Optional SessionManager instance to be used.
+	 * @return void
+	 */
 	public function __construct(?SessionManager $sessionManager = null)
 	{
 		if ($sessionManager) {
@@ -55,6 +67,12 @@ class Request
 			return false;
 		}
 
+		// Ensure CAPTCHA is valid
+		if ($this->sessionManager->validateCaptchaAnswer($this->getPostData('captcha_answer')) === false) {
+			return false;
+		}
+
+
 		// Retrieve sanitized title and body from POST data.
 		$title = $this->getPostData('title');
 		$body = $this->getPostData('body');
@@ -63,12 +81,20 @@ class Request
 		if ($title && $body) {
 			// Save the article through the App instance.
 			$app->saveArticle($title, $body);
+			$this->sessionManager->unsetCaptchaAnswer();
+			header('Location: /index.php');
 			return true;
 		}
 
 		return false; // Return false if required fields are missing.
 	}
 
+	/**
+	 * Retrieve sanitized input data from a GET request.
+	 *
+	 * @param string $key The key to retrieve from GET data.
+	 * @return string|null The sanitized input or null if not set.
+	 */
 	public function getGetData(string $key): ?string
 	{
 		// Check if key exists in $_GET and sanitize it.

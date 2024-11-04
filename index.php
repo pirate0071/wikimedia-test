@@ -3,21 +3,33 @@
 namespace App;
 
 use App\View\Renderer;
+use DI\ContainerBuilder;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-// Initialize SessionManager for secure session handling and CSRF protection
-$sessionManager = new SessionManager();
+// Create a DI container builder
+$containerBuilder = new ContainerBuilder();
+
+// Load the external DI configuration file
+$diConfig = require __DIR__ . '/di-config.php';
+$diConfig( $containerBuilder ); // Apply configurations
+
+// Build the container
+$container = $containerBuilder->build();
 
 // Add security headers
 header( "X-Content-Type-Options: nosniff" );
 header( "X-Frame-Options: DENY" );
 header( "X-XSS-Protection: 1; mode=block" );
 
-$app = new App();
+// Get instances from the container
+$app = $container->get( App::class );
+// Get instances from the session manager
+$sessionManager = $container->get( SessionManager::class );
+
 $pageTitle = 'Article Editor';
-$request = new Request( $sessionManager );
-$view = new Renderer( $request, $sessionManager );
+$request = $container->get( Request::class );
+$view = $container->get( Renderer::class );
 
 // Improved head section with safer script and stylesheet inclusion.
 echo $view->renderHeader( $pageTitle );

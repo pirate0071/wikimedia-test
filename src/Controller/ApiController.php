@@ -5,6 +5,11 @@ namespace App\Controller;
 use App\App;
 use App\Request;
 
+/**
+ * Class ApiController
+ *
+ * This class handles API requests and routes them to the appropriate methods.
+ */
 class ApiController {
 	private App $app;
 	private ?array $articleListCache = null; // Cache for articles list

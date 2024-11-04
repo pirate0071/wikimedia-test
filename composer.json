@@ -16,7 +16,9 @@
 		"ext-json": "*",
 		"guzzlehttp/guzzle": "^7.9",
 		"ext-mbstring": "*",
-		"ext-pdo": "*"
+		"ext-pdo": "*",
+		"gregwar/captcha": "^1.2",
+		"php-di/php-di": "^7.0"
 	},
 	"scripts": {
 		"lint": "phpcs",
