@@ -11,8 +11,7 @@ use Gregwar\Captcha\CaptchaBuilder;
 /**
  * The Renderer class is responsible for generating the HTML output for various sections of a web page.
  */
-class Renderer
-{
+class Renderer {
 
 	/** @var Request */
 	private Request $request;
@@ -30,8 +29,7 @@ class Renderer
 	 *
 	 * @return void
 	 */
-	public function __construct(Request $request, SessionManager $sessionManager, CaptchaBuilder $captchaBuilder)
-	{
+	public function __construct( Request $request, SessionManager $sessionManager, CaptchaBuilder $captchaBuilder ) {
 		$this->request = $request;
 		$this->sessionManager = $sessionManager;
 		$this->captchaBuilder = $captchaBuilder;
@@ -44,8 +42,7 @@ class Renderer
 	 *
 	 * @return string The complete HTML header section.
 	 */
-	public function renderHeader(string $pageTitle): string
-	{
+	public function renderHeader( string $pageTitle ): string {
 		return <<<HTML
 				<!DOCTYPE html>
 				<html lang="en">
@@ -68,21 +65,20 @@ class Renderer
 	 *
 	 * @return string The rendered HTML content.
 	 */
-	public function renderContent(App $app): string
-	{
+	public function renderContent( App $app ): string {
 		$csrfToken = $this->sessionManager->getCsrfToken();
-		$title = StringSanitizer::fullSanitize($this->request->getGetData('title') ?? '');
-		$article = $app->fetchArticle($this->request->getGetData('title'));
-		$body = StringSanitizer::fullSanitize($article ?? '');
+		$title = StringSanitizer::fullSanitize( $this->request->getGetData( 'title' ) ?? '' );
+		$article = $app->fetchArticle( $this->request->getGetData( 'title' ) );
+		$body = StringSanitizer::fullSanitize( $article ?? '' );
 		// Build the captcha
 		// Check if a CAPTCHA already exists in the session
-		if ($this->sessionManager->getByKey('captcha_answer') == '') {
+		if ( $this->sessionManager->getByKey( 'captcha_answer' ) == '' ) {
 			// Build a new CAPTCHA if none exists in the session
 			$this->captchaBuilder->build();
-			$this->sessionManager->setCaptchaAnswer($this->captchaBuilder->getPhrase());
+			$this->sessionManager->setCaptchaAnswer( $this->captchaBuilder->getPhrase() );
 		} else {
 			// Reuse the existing CAPTCHA
-			$this->captchaBuilder->setPhrase($this->sessionManager->getByKey('captcha_answer'));
+			$this->captchaBuilder->setPhrase( $this->sessionManager->getByKey( 'captcha_answer' ) );
 			$this->captchaBuilder->build();
 		}
 		return <<<HTML
@@ -122,10 +118,9 @@ class Renderer
 	 *
 	 * @return void
 	 */
-	public function renderListOfArticles(App $app): void
-	{
-		foreach ($app->getListOfArticles() as $article) {
-			$escapedArticle = StringSanitizer::fullSanitize($article);
+	public function renderListOfArticles( App $app ): void {
+		foreach ( $app->getListOfArticles() as $article ) {
+			$escapedArticle = StringSanitizer::fullSanitize( $article );
 			echo "<li><a href='index.php?title=$escapedArticle'>$escapedArticle</a></li>";
 		}
 

@@ -9,8 +9,7 @@ use App\Utility\StringSanitizer;
  * including retrieving and sanitizing input data from both GET and POST requests,
  * as well as securely handling form submissions.
  */
-class Request
-{
+class Request {
 	/** @var SessionManager */
 	private SessionManager $sessionManager;
 
@@ -20,9 +19,8 @@ class Request
 	 * @param SessionManager|null $sessionManager Optional SessionManager instance to be used.
 	 * @return void
 	 */
-	public function __construct(?SessionManager $sessionManager = null)
-	{
-		if ($sessionManager) {
+	public function __construct( ?SessionManager $sessionManager = null ) {
+		if ( $sessionManager ) {
 			$this->sessionManager = $sessionManager;
 		}
 	}
@@ -33,10 +31,9 @@ class Request
 	 * @param string $key The key to retrieve from POST data.
 	 * @return string|null The sanitized input or null if not set.
 	 */
-	public function getPostData(string $key): ?string
-	{
+	public function getPostData( string $key ): ?string {
 		// Check if key exists in $_POST and sanitize it.
-		return isset($_POST[$key]) ? StringSanitizer::fullSanitize(trim($_POST[$key])) : null;
+		return isset( $_POST[$key] ) ? StringSanitizer::fullSanitize( trim( $_POST[$key] ) ) : null;
 	}
 
 	/**
@@ -44,8 +41,7 @@ class Request
 	 *
 	 * @return bool True if the request method is POST, otherwise false.
 	 */
-	public function isPost(): bool
-	{
+	public function isPost(): bool {
 		return $_SERVER['REQUEST_METHOD'] === 'POST';
 	}
 
@@ -55,34 +51,32 @@ class Request
 	 * @param App $app An instance of the App class for handling article operations.
 	 * @return bool True if the article was saved successfully, otherwise false.
 	 */
-	public function handleFormSubmission(App $app): bool
-	{
+	public function handleFormSubmission( App $app ): bool {
 		// Ensure the request is a POST request.
-		if (!$this->isPost()) {
+		if ( !$this->isPost() ) {
 			return false;
 		}
 
 		// Ensure CSRF TOKEN valid
-		if ($this->sessionManager->validateCsrfToken($this->getPostData('csrf_token')) === false) {
+		if ( $this->sessionManager->validateCsrfToken( $this->getPostData( 'csrf_token' ) ) === false ) {
 			return false;
 		}
 
 		// Ensure CAPTCHA is valid
-		if ($this->sessionManager->validateCaptchaAnswer($this->getPostData('captcha_answer')) === false) {
+		if ( $this->sessionManager->validateCaptchaAnswer( $this->getPostData( 'captcha_answer' ) ) === false ) {
 			return false;
 		}
 
-
 		// Retrieve sanitized title and body from POST data.
-		$title = $this->getPostData('title');
-		$body = $this->getPostData('body');
+		$title = $this->getPostData( 'title' );
+		$body = $this->getPostData( 'body' );
 
 		// Validate that both title and body are present.
-		if ($title && $body) {
+		if ( $title && $body ) {
 			// Save the article through the App instance.
-			$app->saveArticle($title, $body);
+			$app->saveArticle( $title, $body );
 			$this->sessionManager->unsetCaptchaAnswer();
-			header('Location: /index.php');
+			header( 'Location: /index.php' );
 			return true;
 		}
 
@@ -95,9 +89,8 @@ class Request
 	 * @param string $key The key to retrieve from GET data.
 	 * @return string|null The sanitized input or null if not set.
 	 */
-	public function getGetData(string $key): ?string
-	{
+	public function getGetData( string $key ): ?string {
 		// Check if key exists in $_GET and sanitize it.
-		return isset($_GET[$key]) ? StringSanitizer::fullSanitize(trim($_GET[$key])) : '';
+		return isset( $_GET[$key] ) ? StringSanitizer::fullSanitize( trim( $_GET[$key] ) ) : '';
 	}
 }

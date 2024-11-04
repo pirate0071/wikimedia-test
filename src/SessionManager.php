@@ -8,31 +8,33 @@ use Random\RandomException;
 /**
  * Manages session operations including initialization, CSRF protection, and CAPTCHA validation.
  */
-class SessionManager {
+class SessionManager
+{
 	private const CSRF_TOKEN_KEY = 'csrf_token';
-	private const TOKEN_EXPIRY_TIME = 1800; // 30 minutes
+	private int $tokenLifeTime = 1800; // 30 minutes
 
 	/**
 	 * Initializes the session with secure configurations and prevents session fixation attacks.
 	 *
 	 * @return void
 	 */
-	public function __construct() {
+	public function __construct()
+	{
 		// Configure session security settings
-		session_set_cookie_params( [
+		session_set_cookie_params([
 			'lifetime' => 0,
 			'path' => '/',
-			'domain' => $_SERVER['SERVER_NAME'],
-			'secure' => isset( $_SERVER['HTTPS'] ),
+			'domain' => $_SERVER['SERVER_NAME'] ?? null,
+			'secure' => isset($_SERVER['HTTPS']),
 			'httponly' => true,
 			'samesite' => 'Strict', // Prevents CSRF in cross-site contexts
-		] );
+		]);
 
 		session_start();
 
 		// Regenerate session ID periodically to prevent fixation attacks
-		if ( !isset( $_SESSION['initiated'] ) ) {
-			session_regenerate_id( true );
+		if (!isset($_SESSION['initiated'])) {
+			session_regenerate_id(true);
 			$_SESSION['initiated'] = true;
 		}
 	}
@@ -43,13 +45,14 @@ class SessionManager {
 	 * @return string The CSRF token.
 	 * @throws RandomException
 	 */
-	public function getCsrfToken(): string {
-		if ( !isset( $_SESSION[self::CSRF_TOKEN_KEY] ) || $this->isTokenExpired() ) {
-			$_SESSION[self::CSRF_TOKEN_KEY] = bin2hex( random_bytes( 32 ) );
+	public function getCsrfToken(): string
+	{
+		if (!isset($_SESSION[self::CSRF_TOKEN_KEY]) || $this->isTokenExpired()) {
+			$_SESSION[self::CSRF_TOKEN_KEY] = bin2hex(random_bytes(32));
 			$_SESSION[self::CSRF_TOKEN_KEY . '_time'] = time(); // Store creation time
 		}
 
-		return StringSanitizer::escapeHtml( $_SESSION[self::CSRF_TOKEN_KEY] );
+		return StringSanitizer::escapeHtml($_SESSION[self::CSRF_TOKEN_KEY]);
 	}
 
 	/**
@@ -58,12 +61,13 @@ class SessionManager {
 	 * @param string $token The CSRF token to validate.
 	 * @return bool True if the token is valid, false otherwise.
 	 */
-	public function validateCsrfToken( string $token ): bool {
+	public function validateCsrfToken(string $token): bool
+	{
 		// Sanitize the input token before comparison
-		$sanitizedToken = StringSanitizer::sanitizeFileName( $token );
+		$sanitizedToken = StringSanitizer::sanitizeFileName($token);
 
-		return isset( $_SESSION[self::CSRF_TOKEN_KEY] ) &&
-			hash_equals( $_SESSION[self::CSRF_TOKEN_KEY], $sanitizedToken ) &&
+		return isset($_SESSION[self::CSRF_TOKEN_KEY]) &&
+			hash_equals($_SESSION[self::CSRF_TOKEN_KEY], $sanitizedToken) &&
 			!$this->isTokenExpired();
 	}
 
@@ -75,9 +79,10 @@ class SessionManager {
 	 *
 	 * @return bool True if the CAPTCHA answer matches the stored value, false otherwise.
 	 */
-	public function validateCaptchaAnswer(string $captchaAnswer ): bool {
-		$clientCaptchaAnswer = StringSanitizer::sanitizeFileName( $captchaAnswer );
-		return $this->getByKey( 'captcha_answer' ) === $clientCaptchaAnswer;
+	public function validateCaptchaAnswer(string $captchaAnswer): bool
+	{
+		$clientCaptchaAnswer = StringSanitizer::sanitizeFileName($captchaAnswer);
+		return $this->getByKey('captcha_answer') === $clientCaptchaAnswer;
 	}
 
 	/**
@@ -86,8 +91,9 @@ class SessionManager {
 	 * @param string $key The key to look up in the session.
 	 * @return string The sanitized value associated with the given key.
 	 */
-	public function getByKey( string $key ): string {
-		return StringSanitizer::fullSanitize( $_SESSION[$key] ?? '' );
+	public function getByKey(string $key): string
+	{
+		return StringSanitizer::fullSanitize($_SESSION[$key] ?? '');
 	}
 
 	/**
@@ -96,7 +102,8 @@ class SessionManager {
 	 * @param string $captchaAnswer The answer provided by the user for the CAPTCHA.
 	 * @return void
 	 */
-	public function setCaptchaAnswer(string $captchaAnswer ): void {
+	public function setCaptchaAnswer(string $captchaAnswer): void
+	{
 		$_SESSION['captcha_answer'] = $captchaAnswer;
 	}
 
@@ -105,8 +112,9 @@ class SessionManager {
 	 *
 	 * @return void
 	 */
-	public function unsetCaptchaAnswer(): void {
-		unset( $_SESSION['captcha_answer'] );
+	public function unsetCaptchaAnswer(): void
+	{
+		unset($_SESSION['captcha_answer']);
 	}
 
 	/**
@@ -114,26 +122,39 @@ class SessionManager {
 	 *
 	 * @return bool True if the token is expired, false otherwise.
 	 */
-	private function isTokenExpired(): bool {
-		if ( !isset( $_SESSION[self::CSRF_TOKEN_KEY . '_time'] ) ) {
+	private function isTokenExpired(): bool
+	{
+		if (!isset($_SESSION[self::CSRF_TOKEN_KEY . '_time'])) {
 			return true;
 		}
 
-		return ( time() - $_SESSION[self::CSRF_TOKEN_KEY . '_time'] ) > self::TOKEN_EXPIRY_TIME;
+		return (time() - $_SESSION[self::CSRF_TOKEN_KEY . '_time']) > $this->tokenLifeTime;
 	}
 
 	/**
 	 * Destroy the session, including CSRF token and other session data.
 	 */
-	public function destroySession(): void {
+	public function destroySession(): void
+	{
 		$_SESSION = [];
-		if ( ini_get( "session.use_cookies" ) ) {
+		if (ini_get("session.use_cookies")) {
 			$params = session_get_cookie_params();
-			setcookie( session_name(), '', time() - 42000,
+			setcookie(session_name(), '', time() - 42000,
 				$params["path"], $params["domain"],
 				$params["secure"], $params["httponly"]
 			);
 		}
 		session_destroy();
+	}
+
+	/**
+	 * Set the lifetime for the CSRF token.
+	 *
+	 * @param int $time The desired lifetime of the token in seconds.
+	 * @return void
+	 */
+	public function setTokenLifeTime(int $time): void
+	{
+		$this->tokenLifeTime = $time;
 	}
 }
