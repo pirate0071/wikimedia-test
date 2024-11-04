@@ -3,9 +3,20 @@
 namespace App\View;
 
 use App\App;
+use App\Request;
+use App\SessionManager;
 use App\Utility\StringSanitizer;
 
 class Renderer {
+
+	private Request $request;
+	private SessionManager $sessionManager;
+
+	public function __construct( Request $request, SessionManager $sessionManager ) {
+		$this->request = $request;
+		$this->sessionManager = $sessionManager;
+	}
+
 	public function renderHeader( string $pageTitle ): string {
 		return <<<HTML
 				<!DOCTYPE html>
@@ -23,10 +34,10 @@ class Renderer {
 	}
 
 	public function renderContent( App $app ): string {
-		$csrfToken = $_SESSION['csrf_token'];
-		$title = isset( $_GET['title'] ) ? StringSanitizer::fullSanitize( $_GET['title'] ) : '';
-		$article = isset( $_GET['title'] ) ? $app->fetchArticle( $_GET['title'] ) : '';
-		$body = StringSanitizer::fullSanitize( $article );
+		$csrfToken = $this->sessionManager->getCsrfToken();
+		$title = StringSanitizer::fullSanitize( $this->request->getGetData( 'title' ) ?? '' );
+		$article = $app->fetchArticle( $this->request->getGetData( 'title' ) );
+		$body = StringSanitizer::fullSanitize( $article ?? '' );
 		return <<<HTML
 					<div id="header" class="header">
 						<a href="/">Article Editor</a>

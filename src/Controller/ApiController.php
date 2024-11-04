@@ -3,11 +3,13 @@
 namespace App\Controller;
 
 use App\App;
-use App\Utility\StringSanitizer;
+use App\Request;
 
 class ApiController {
 	private App $app;
 	private ?array $articleListCache = null; // Cache for articles list
+
+	private Request $request;
 
 	/**
 	 * ApiController constructor.
@@ -16,6 +18,7 @@ class ApiController {
 	 */
 	public function __construct( App $app ) {
 		$this->app = $app;
+		$this->request = new Request();
 	}
 
 	/**
@@ -26,8 +29,8 @@ class ApiController {
 		header( 'Content-Type: application/json' );
 
 		// Retrieve sanitized request parameters
-		$title = StringSanitizer::fullSanitize( $_GET['title'] ?? '' );
-		$prefixSearch = StringSanitizer::fullSanitize( $_GET['prefixsearch'] ?? '' );
+		$title = $this->request->getGetData( 'title' );
+		$prefixSearch = $this->request->getGetData( 'prefixsearch' );
 
 		// Route the request based on parameters
 		if ( !$title && !$prefixSearch ) {
